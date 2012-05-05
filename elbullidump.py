@@ -79,10 +79,39 @@ class Main(object):
 
     def get_data_rows(self, file_name, data):
         query = cgi.parse_qs(data)
-        for key, value in query.iteritems():
-            if int(key[-1]) in range(0, 9):
-                print key
-        print("\n{0}: {1}".format(file_name, query))
+        items = {}
+        common_props = {}
+        for key, values in query.iteritems():
+            prop_id = None
+            # [100, 999]
+            if key[-3:].isdigit():
+                prop_id = key[-3:]
+                prop_name = key[:-3]
+            # [10, 99)
+            elif key[-2:].isdigit():
+                prop_id = key[-2:]
+                prop_name = key[:-2]
+            # [0, 9]
+            elif key[-1:].isdigit():
+                prop_id = key[-1:]
+                prop_name = key[:-1]
+            prop_value = "".join(values)
+            if prop_id:
+                if prop_id not in items:
+                    items[prop_id] = {}
+                items[prop_id].update({prop_name: prop_value})
+            else:
+                common_props[key] = prop_value
+        for key, value in items.iteritems():
+            items[key].update(common_props)
+        if items:
+            headers = items.values()[0]
+            print ",".join(headers.keys())
+        for value_dict in items.values():
+            print ",".join(value_dict.values())
+        print "\n"
+#        print items
+#        print("\n{0}: {1}".format(file_name, query))
 
 
 if __name__ == "__main__":
